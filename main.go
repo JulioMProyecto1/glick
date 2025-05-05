@@ -5,10 +5,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	// "strconv"
-
-	// "glick/config"
-	// "io"
 	"net/http"
 	"os"
 	"strings"
@@ -38,13 +34,8 @@ type CreateTrackTimePayload struct {
 
 func main() {
 
-	// config.LoadEnv()
 	list_id := "901507224811"
 	assignee_int := 18901014
-
-	// list_id := config.GetEnv("LIST_ID")
-	// assignee := config.GetEnv("ASSIGNEE_CLICKUP_ID")
-	// assignee_int, _ := strconv.Atoi(assignee)
 	url := fmt.Sprintf("https://api.clickup.com/api/v2/list/%s/task", list_id)
 
 	reader := bufio.NewReader(os.Stdin)
@@ -54,25 +45,15 @@ func main() {
 	cu_tracktime, _ := reader.ReadString('\n')
 	cu_tracktime_text := strings.TrimSpace(cu_tracktime)
 
-	mode := ""
-
-	if cu_tracktime_text == "y" {
-		mode = "START_TRACK"
-	} else if cu_tracktime_text != "" {
-		mode = "WITH_TRACK"
-	} else if cu_tracktime_text == "" {
-		mode = "NO_TRACK"
-	}
-
 	taskData := TaskPayload{
 		Name:        strings.TrimSpace(cu_task_name),
 		Description: strings.TrimSpace(cu_description),
 		Assignees:   []int{assignee_int},
 		DueDate:     today,
 	}
-	switch mode {
-	case "START_TRACK":
 
+	switch cu_tracktime_text {
+	case "y":
 		task_response := post(url, taskData)
 		start_time_url := "https://api.clickup.com/api/v2/team/529/time_entries/start"
 		track_time_data := StartTrackTimePayload{
@@ -81,18 +62,21 @@ func main() {
 
 		post(start_time_url, track_time_data)
 		os.Exit(0)
-	case "WITH_TRACK":
-		taskData.DueDateTime = true
-		taskData.StartDateTime = true
-		taskData.Status = "Done"
+	case "n":
+		post(url, taskData)
+		os.Exit(0)
+	default:
 		duration, err_parse := time.ParseDuration(cu_tracktime_text)
-		duration_in_millis := duration.Milliseconds()
-		taskData.StartDate = taskData.DueDate - duration_in_millis
-		task_response := post(url, taskData)
 		if err_parse != nil {
 			fmt.Println("Invalid duration", err_parse)
 			os.Exit(1)
 		}
+		taskData.DueDateTime = true
+		taskData.StartDateTime = true
+		taskData.Status = "Done"
+		duration_in_millis := duration.Milliseconds()
+		taskData.StartDate = taskData.DueDate - duration_in_millis
+		task_response := post(url, taskData)
 		create_time_url := "https://api.clickup.com/api/v2/team/529/time_entries"
 		create_time_tracked_data := CreateTrackTimePayload{
 			Tid:      task_response.Id,
@@ -100,12 +84,6 @@ func main() {
 			Duration: duration_in_millis,
 		}
 		post(create_time_url, create_time_tracked_data)
-		os.Exit(0)
-	case "NO_TRACK":
-		post(url, taskData)
-		os.Exit(0)
-	default:
-		fmt.Println("Nothing to do")
 		os.Exit(0)
 	}
 
@@ -117,7 +95,6 @@ type TaskResponse struct {
 
 func post(url string, body any) TaskResponse {
 	clickup_api_key := "pk_18901014_GITX5L6G03YB41JG5R4BNT89OQH10X6N"
-	// clickup_api_key := config.GetEnv("CLICKUP_API_KEY")
 	jsonBytes, err := json.Marshal(body)
 	fmt.Println("Request body:", string(jsonBytes))
 	if err != nil {
