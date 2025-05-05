@@ -5,9 +5,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"strconv"
+	// "strconv"
 
-	"glick/config"
+	// "glick/config"
 	// "io"
 	"net/http"
 	"os"
@@ -38,11 +38,13 @@ type CreateTrackTimePayload struct {
 
 func main() {
 
-	config.LoadEnv()
+	// config.LoadEnv()
+	list_id := "901507224811"
+	assignee_int := 18901014
 
-	list_id := config.GetEnv("LIST_ID")
-	assignee := config.GetEnv("ASSIGNEE_CLICKUP_ID")
-	assignee_int, _ := strconv.Atoi(assignee)
+	// list_id := config.GetEnv("LIST_ID")
+	// assignee := config.GetEnv("ASSIGNEE_CLICKUP_ID")
+	// assignee_int, _ := strconv.Atoi(assignee)
 	url := fmt.Sprintf("https://api.clickup.com/api/v2/list/%s/task", list_id)
 
 	reader := bufio.NewReader(os.Stdin)
@@ -114,8 +116,8 @@ type TaskResponse struct {
 }
 
 func post(url string, body any) TaskResponse {
-
-	clickup_api_key := config.GetEnv("CLICKUP_API_KEY")
+	clickup_api_key := "pk_18901014_GITX5L6G03YB41JG5R4BNT89OQH10X6N"
+	// clickup_api_key := config.GetEnv("CLICKUP_API_KEY")
 	jsonBytes, err := json.Marshal(body)
 	fmt.Println("Request body:", string(jsonBytes))
 	if err != nil {
