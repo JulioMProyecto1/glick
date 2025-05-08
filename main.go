@@ -94,7 +94,9 @@ type TaskResponse struct {
 }
 
 func post(url string, body any) TaskResponse {
-	clickup_api_key := "pk_18901014_GITX5L6G03YB41JG5R4BNT89OQH10X6N"
+	// TODO: Support env
+	// set your own clickup api key
+	clickup_api_key := "pk_XXXXXXXXXXXXXXXXXXXXXXX"
 	jsonBytes, err := json.Marshal(body)
 	fmt.Println("Request body:", string(jsonBytes))
 	if err != nil {
